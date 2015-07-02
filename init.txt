@@ -1,0 +1,132 @@
+view_delay = 0
+use_animations =
+clear_messages = true
+travel_delay = -1
+explore_delay = -1
+travel_key_stop = false
+default_manual_training = true
+autopickup_no_burden = false
+auto_exclude =
+hp_warning = 0
+show_more = false
+show_newturn_mark = false
+list_rotten = false
+force_more_message =
+show_travel_trail = false
+skill_focus = false
+autoinscribe += slay:mikee
+flush.failure = false
+char_set = ascii
+cset = cloud:xa4
+cset = item_orb:0
+use_fake_player_cursor = true
+equip_unequip = true
+
+dump_order = header,hiscore,stats,misc,mutations,skills,spells,inventory
+dump_order += overview
+dump_order += messages,screenshot,monlist,kills,notes,vaults,action_counts
+ood_interesting = 6
+note_hp_percent = 25
+note_skill_levels = 1,3,6,9,12,15,18,21,24,27
+note_all_spells = true
+
+# TBD...
+fire_order = launcher, rock, javelin, tomahawk
+
+####################################
+# not sure exactly how important or correct these settings are
+
+explore_stop =
+explore_stop += items,branches,portals,stairs,altars
+explore_stop += greedy_visited_item_stack,greedy_pickup_smart
+
+stop := runrest_stop_message
+ignore := runrest_ignore_message
+stop =
+ignore =
+ignore += .*
+
+runrest_ignore_poison = 3:15
+runrest_ignore_monster += butterfly:1
+runrest_ignore_monster += orb of destruction:1
+
+####################################
+# These keys are useful to answer prompts and aren't critical for manual play
+
+bindkey = [Y] CMD_NO_CMD_DEFAULT
+bindkey = [N] CMD_NO_CMD_DEFAULT
+bindkey = [B] CMD_NO_CMD_DEFAULT
+bindkey = [.] CMD_NO_CMD_DEFAULT
+
+####################################
+# Don't get interrupted!
+: chk_interrupt_activity["blurry vision"] = function (iname, cause, extra)
+:   return nil
+: end
+
+####################################
+# autopickup/drop_filter stuff, just used for scrolls/potions/wands
+
+autopickup = ?!/
+
+ae := autopickup_exceptions
+df := drop_filter
+ae =
+df =
+# keep: identify,teleportation,remove curse,enchant weapon,
+#       enchant armour,acquirement,recharging,holy word
+ae += scrolls? of (summoning|vulnerability|brand weapon)
+ae += scrolls? of (magic mapping|fog|fear|silence)
+ae += scrolls? of (blinking|amnesia)
+ae += scrolls? of (curse armour|curse jewellery|curse weapon)
+ae += scrolls? of (immolation|noise|random uselessness|torment)
+df += scrolls? of (summoning|vulnerability|brand weapon)
+df += scrolls? of (magic mapping|fog|fear|silence)
+df += scrolls? of (blinking|amnesia)
+df += scrolls? of (curse armour|curse jewellery|curse weapon)
+df += scrolls? of (immolation|noise|random uselessness|torment)
+# keep: curing,heal wounds,haste,cancellation,resistance,experience,
+#       might,beneficial mutation,cure mutation,restore abilities
+ae += potions? of (brilliance|magic|berserk rage)
+ae += potions? of (flight|invisibility|agility)
+ae += potions? of (ambrosia|decay|degeneration|mutation)
+ae += potions? of (poison|lignification)
+df += potions? of (brilliance|magic|berserk rage)
+df += potions? of (flight|invisibility|agility)
+df += potions? of (ambrosia|decay|degeneration|mutation)
+df += potions? of (poison|lignification)
+: if you.race() ~= "Vampire" then
+ae += potions? of blood
+df += potions? of blood
+: end
+# keep: heal wounds,hasting,teleportation
+ae += wand of (random effects|slowing|magic darts|flame|frost|confusion)
+ae += wand of (enslavement|paralysis|invisibility|lightning|fireball)
+ae += wand of (cold|digging|disintegration|draining|fire|polymorph)
+df += wand of (random effects|slowing|magic darts|flame|frost|confusion)
+df += wand of (enslavement|paralysis|invisibility|lightning|fireball)
+df += wand of (cold|digging|disintegration|draining|fire|polymorph)
+
+################################################################
+# now the lua
+
+{
+
+actions = {
+  hi,
+  lo}
+
+function hi()
+  say("Hello")
+end
+actions[1] = hi
+
+function say(x)
+  crawl.mpr(you.turns() .. " ||| " .. x)
+end
+
+function hit_closest()
+  actions[1]()
+end
+
+}
