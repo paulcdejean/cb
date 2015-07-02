@@ -113,20 +113,55 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 {
 
 actions = {
-  hi,
-  lo}
+  rest,
+  relax,
+  fight,
+  explore,
+  progress,
+  panic}
 
-function hi()
-  say("Hello")
+function rest()
+  return false
 end
-actions[1] = hi
+actions[1] = rest
+
+function relax()
+  return false
+end
+actions[2] = relax
+
+function fight()
+  return false
+end
+actions[3] = fight
+
+function explore()
+  return false
+end
+actions[4] = explore
+
+function progress()
+  return false
+end
+actions[5] = progress
+
+function panic()
+  say("CB doesn't know what to do! Panicing.")
+  return true
+end
+actions[6] = panic
 
 function say(x)
-  crawl.mpr(you.turns() .. " ||| " .. x)
+  crawl.mpr(x)
 end
 
 function hit_closest()
-  actions[1]()
+  local result = false
+  local n = 1
+  while result == false do
+    result = actions[n]()
+    n = n + 1
+  end
 end
 
 }
