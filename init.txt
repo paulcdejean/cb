@@ -112,28 +112,37 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 
 {
 
-actions = {
+main_actions = {
   rest,
   relax,
   fight,
   explore,
   progress,
+  escape,
   panic}
+
+-- Resting is what we do when we're not in danager to get us into a state
+-- suitable for adventuring in. At its most basic, it is waiting for health
+-- and mana to regenerate. Advanced techniques might include casting regeneration
+-- on yourself, healing yourself as a deep dwarf, or sif channeling as a mummy.
 
 function rest()
   return false
 end
-actions[1] = rest
+main_actions[1] = rest
+
+-- Relaxing is what we do when we're not in danager and we're in a healthy state
+-- in order to increase our readiness for what lies ahead. This is mainly memorizing
+-- new spells and eating, but also includes things such as quaff IDing.
 
 function relax()
   return false
 end
-actions[2] = relax
+main_actions[2] = relax
 
-function fight()
-  return false
-end
-actions[3] = fight
+-- Exploring is how we go looking for trouble and treasure on the dungeon level
+-- we're currently located on. Here we make use of the robust auto explore
+-- functionality that is built into crawl.
 
 function explore()
   current_turn = you.turns()
@@ -145,18 +154,47 @@ function explore()
 
   return false
 end
-actions[4] = explore
+main_actions[3] = explore
+
+-- Progressing is how we advance in the game. At its most basic it's taking a down
+-- stairway. This controls interlevel travel in general, and the rob run specifically.
 
 function progress()
   return false
 end
-actions[5] = progress
+main_actions[4] = progress
+
+-- When we're in too much danger to rest, relax, explore or progress, then we will try
+-- and fight. Of course this segment will take up most of the code.
+
+fight_actions = {
+  whack,
+  shoot,
+  kite,
+  wait}
+
+function fight()
+  return false
+end
+main_actions[5] = fight
+
+-- When even fighting would be too dangerous, we will try to escape this emergency.
+-- The typical means of doing this is teleportation, but there are other possilibites.
+
+function escape()
+  return false
+end
+main_actions[6] = escape
+
+-- Should never be reached???
 
 function panic()
   say("CB doesn't know what to do! Panicing.")
   return true
 end
-actions[6] = panic
+main_actions[7] = panic
+
+-- Utility functions.
 
 function say(x)
   crawl.mpr(x)
@@ -166,14 +204,21 @@ function magic(command)
   crawl.process_keys(command)
 end
 
--- This is the entry point.
+-- Entry points.
+
 function hit_closest()
   local result = false
   local n = 1
   while result == false do
-    result = actions[n]()
+    result = main_actions[n]()
     n = n + 1
   end
 end
+
+function autopickup(it, name)
+  return true
+end
+clear_autopickup_funcs()
+add_autopickup_func(autopickup)
 
 }
