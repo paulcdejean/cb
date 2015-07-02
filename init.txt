@@ -136,6 +136,13 @@ end
 actions[3] = fight
 
 function explore()
+  current_turn = you.turns()
+  magic("o")
+
+  if you.turns() ~= current_turn then
+    return true
+  end
+
   return false
 end
 actions[4] = explore
@@ -155,6 +162,11 @@ function say(x)
   crawl.mpr(x)
 end
 
+function magic(command)
+  crawl.process_keys(command)
+end
+
+-- This is the entry point.
 function hit_closest()
   local result = false
   local n = 1
