@@ -112,12 +112,14 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 
 {
 
-main_actions = {
-  rest,
-  relax,
-  fight,
-  explore,
-  progress,
+local LOS = 7
+
+local main_actions = {
+  try_rest,
+  try_relax,
+  try_explore,
+  try_progress,
+  try_fight,
   escape,
   panic}
 
@@ -126,32 +128,62 @@ main_actions = {
 -- and mana to regenerate. Advanced techniques might include casting regeneration
 -- on yourself, healing yourself as a deep dwarf, or sif channeling as a mummy.
 
-function rest()
+function try_rest()
+  if danger() then
+     return false
+  end
+
+  local hp,mhp = you.hp()
+  if hp < mhp then
+    rest()
+    return true
+  end
+
+  local mp,mmp = you.mp()
+  if mp < mmp then
+    rest()
+    return true
+  end
+
   return false
 end
-main_actions[1] = rest
+main_actions[1] = try_rest
+
+function rest()
+  say("Resting!")
+  do_it("s")
+end
 
 -- Relaxing is what we do when we're not in danager and we're in a healthy state
 -- in order to increase our readiness for what lies ahead. This is mainly memorizing
 -- new spells and eating, but also includes things such as quaff IDing.
 
-function relax()
+function try_relax()
   return false
 end
-main_actions[2] = relax
+main_actions[2] = try_relax
 
 -- Exploring is how we go looking for trouble and treasure on the dungeon level
 -- we're currently located on. Here we make use of the robust auto explore
 -- functionality that is built into crawl.
 
 function explore()
-  current_turn = you.turns()
-  magic("o")
-
-  if you.turns() ~= current_turn then
-    return true
+  if danger() then
+     return false
   end
 
+  try_it("o")
+  try_it("j")
+
+--[[
+  if do_it("j") then
+    say("Exploring!")
+    return true
+  else
+    say("Exploring failed. Level likely explored.")
+    return false
+  end
+--]]
   return false
 end
 main_actions[3] = explore
@@ -159,24 +191,24 @@ main_actions[3] = explore
 -- Progressing is how we advance in the game. At its most basic it's taking a down
 -- stairway. This controls interlevel travel in general, and the rob run specifically.
 
-function progress()
+function try_progress()
   return false
 end
-main_actions[4] = progress
+main_actions[4] = try_progress
 
 -- When we're in too much danger to rest, relax, explore or progress, then we will try
 -- and fight. Of course this segment will take up most of the code.
 
-fight_actions = {
+local fight_actions = {
   whack,
   shoot,
   kite,
   wait}
 
-function fight()
+function try_fight()
   return false
 end
-main_actions[5] = fight
+main_actions[5] = try_fight
 
 -- When even fighting would be too dangerous, we will try to escape this emergency.
 -- The typical means of doing this is teleportation, but there are other possilibites.
@@ -196,16 +228,68 @@ main_actions[7] = panic
 
 -- Utility functions.
 
-function say(x)
-  crawl.mpr(x)
+local monster_array
+local monster_array_init = false
+
+function initialize_monster_array()
+  if not monster_array_init then
+    monster_array = {}
+    local x
+    for x = -LOS,LOS do
+      monster_array[x] = {}
+    end
+    monster_array_init = true
+    say("Initializing monster array")
+  end
 end
 
-function magic(command)
-  crawl.process_keys(command)
+function update_monster_array()
+  initialize_monster_array()
+
+  local x,y
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      monster_array[x][y] = monster.get_monster_at(x, y)
+    end
+  end
 end
+
+function danger()
+  update_monster_array()
+
+  local danger = false
+
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      if monster_array[x][y] then
+        danger = true
+      end
+    end
+  end
+
+  return danger
+end
+
+function say(x)
+  crawl.mpr(x)
+  crawl.take_note(x)
+end
+
+local old_turn
+
+function try_it(command)
+  old_turn = you.turns()
+  crawl.process_keys(command)
+  return you.turn_is_over()
+end
+
+-- Run when crawl is ready for user input.
+function ready
 
 -- Entry points.
 
+
+-- Run when you hit tab
 function hit_closest()
   local result = false
   local n = 1
@@ -215,10 +299,12 @@ function hit_closest()
   end
 end
 
+-- Run when crawl is deciding if it should pick something up.
 function autopickup(it, name)
   return true
 end
 clear_autopickup_funcs()
 add_autopickup_func(autopickup)
+
 
 }
