@@ -9,7 +9,6 @@
 #            More general strategies might call on more specific strategies
 #            acording to the strategy tables.
 #
-# SECTION C: Strategy tables.
 #            These tables govern which strategies have priority over which
 #            other strategies. For instance you would rather berserk than
 #            attack. However if there's no reason to beserk (because the
@@ -21,7 +20,7 @@
 #            or some other simplistic strategy change, then you may be able to
 #            do it here without having to be much of a programmer.
 #
-# SECTION D: Main functions.
+# SECTION C: Main functions.
 #            These functions include "hit_closest()" which is called when you
 #            press TAB. As well as "ready()" which is called when Crawl is
 #            ready to accept user input. In addition the heartbeat function
@@ -29,16 +28,20 @@
 #            the entry points to everything else, so if you're curious how cb
 #            works, then this is the place you want to start reading.
 #
-# SECTION E: Autopickup functions.
+# SECTION D: Autopickup functions.
 #            These functions control cb's dynamic autopickup functionality.
 #            There is the "autopickup()" entry point as well as related
 #            functions needed for item prioritization.
 #
-# SECTION F: Utility functions.
+# SECTION E: Utility functions.
 #            These functions are called by all the above functions. They
 #            include general stuff used everywhere like "say(message)" which
 #            is called all over the place for feedback and debugging. As well
 #            as some functions that may only be used by one or two strategies.
+
+#############
+# SECTION A #
+#############
 
 view_delay = 0
 use_animations =
@@ -154,17 +157,101 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 
 {
 
+---------------
+-- SECTION B --
+---------------
+
+function win()
+  local win_strategy = {
+    rest,
+    explore,
+    progress,
+    fight}
+
+  local n = 1
+  local success = false
+  while not success do
+    if not win_strategy[n] then
+      -- We've reached the end of the strategy table.
+      -- This means we've failed.
+      say("CB failed to implement any of the strategies in the main table.")
+      say("CB is out of ideas and is returning control to the user.")
+      return false
+    end
+    success = win_strategy[n]()
+    n = n + 1
+  end
+end
+
+function do_rest()
+  do_it("5")
+end
+
+function rest()
+  -- Reasons not to rest.
+  if danger() then
+    return false
+  end
+
+  -- Reasons to rest.
+  local hp,mhp = you.hp()
+  local mp,mmp = you.mp()
+  if hp < mhp or mp < mmp then
+    do_rest()
+    return true
+  end
+
+  return false
+end
+
+function explore()
+  return try_it("o")
+end
+
+function progress()
+  return false
+end
+
+function fight()
+  local fight_strategy = {
+    whack,
+    wait}
+
+  local n = 1
+  local success = false
+  while not success do
+    if not fight_strategy[n] then
+      say("Unable to fight for some reason :(")
+      return false
+    end
+    success = fight_strategy[n]()
+    n = n + 1
+  end
+  return success
+end
+
+function whack()
+  return false
+end
+
+function wait()
+  do_it("s")
+  return true
+end
+
+---------------
+-- SECTION C --
+---------------
+
 local LOS = 7
 
 local current_turn
 
 -- cb takes action, spending one or more turns.
 -- Hopefully this brings us closer to victory!
-function cb_main()
-  do_it("o")
-end
 
-local cb = coroutine.create(cb_main)
+
+local cb = coroutine.create(win)
 
 -- hit_closest is run when you press tab.
 local first_time = true
@@ -172,7 +259,7 @@ local first_time = true
 function hit_closest()
   if(not first_time) then
     if(coroutine.status(cb) == "dead") then
-      cb = coroutine.create(cb_main)
+      cb = coroutine.create(win)
       coroutine.resume(cb)
     end
   else
@@ -188,6 +275,14 @@ function ready()
     coroutine.resume(cb)
   end
 end
+
+---------------
+-- SECTION D --
+---------------
+
+---------------
+-- SECTION E --
+---------------
 
 function do_it(command)
   local old_turn = you.turns()
@@ -215,6 +310,44 @@ end
 function say(x)
   crawl.mpr(x)
   crawl.take_note(x)
+end
+
+function initialize_monster_array()
+  if not monster_array_init then
+    monster_array = {}
+    local x
+    for x = -LOS,LOS do
+      monster_array[x] = {}
+    end
+    monster_array_init = true
+  end
+end
+
+function update_monster_array()
+  initialize_monster_array()
+
+  local x,y
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      monster_array[x][y] = monster.get_monster_at(x, y)
+    end
+  end
+end
+
+function danger()
+  update_monster_array()
+
+  local danger = false
+
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      if monster_array[x][y] then
+        danger = true
+      end
+    end
+  end
+
+  return danger
 end
 
 }
