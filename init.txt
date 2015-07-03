@@ -292,6 +292,7 @@ end
 
 function find_nearby_corpse()
   -- We just butcher everything indiscriminately because it's simple.
+  -- The final \r is needed because it makes sure ready() is called again???
   return try_it(control('f') .. "corpse&&!!skel" .. "\ra\r\r")
 end
 
