@@ -1,3 +1,45 @@
+# TABLE OF CONTENTS:
+#
+# SECTION A: Crawl options.
+#            Self explanatory.
+#
+# SECTION B: Strategy functions.
+#            These fucntions implement specific strategies, such as:
+#            Quaff ID a potion. Travel to the lair. Rest. Progress.
+#            More general strategies might call on more specific strategies
+#            acording to the strategy tables.
+#
+# SECTION C: Strategy tables.
+#            These tables govern which strategies have priority over which
+#            other strategies. For instance you would rather berserk than
+#            attack. However if there's no reason to beserk (because the
+#            situation doesn't pose enough of a threat) or if you can't go
+#            berserk for some reason, then attacking normally will be your
+#            fall back plan.
+#
+#            If you're like to change the route (orc before lair for instance)
+#            or some other simplistic strategy change, then you may be able to
+#            do it here without having to be much of a programmer.
+#
+# SECTION D: Main functions.
+#            These functions include "hit_closest()" which is called when you
+#            press TAB. As well as "ready()" which is called when Crawl is
+#            ready to accept user input. In addition the heartbeat function
+#            "cb_main()" is included. These functions drive the bot, and are
+#            the entry points to everything else, so if you're curious how cb
+#            works, then this is the place you want to start reading.
+#
+# SECTION E: Autopickup functions.
+#            These functions control cb's dynamic autopickup functionality.
+#            There is the "autopickup()" entry point as well as related
+#            functions needed for item prioritization.
+#
+# SECTION F: Utility functions.
+#            These functions are called by all the above functions. They
+#            include general stuff used everywhere like "say(message)" which
+#            is called all over the place for feedback and debugging. As well
+#            as some functions that may only be used by one or two strategies.
+
 view_delay = 0
 use_animations =
 clear_messages = true
