@@ -212,7 +212,9 @@ end
 function relax()
   local relax_strategy = {
     eat_chunk,
-    butcher_nearby_corpse,
+    butcher_corpse,
+    pickup_meat,
+    find_nearby_corpse,
     eat_permafood}
 
   -- Reasons not to relax.
@@ -232,16 +234,68 @@ function relax()
   return success
 end
 
+function do_eat_chunk()
+  do_it("ee")
+end
+
 function eat_chunk()
+  if have_chunk() and can_eat() then
+    do_eat_chunk()
+    return true
+  end
   return false
 end
 
-function butcher_nearby_corpse()
+function butcher_corpse()
+  local corpse_count = 0
+  for item in at_feet() do
+    -- We can't use item.class because skeletons have class corpse.
+    -- It's really fucking dumb.
+    if string.find(item.name(), "corpse") then
+      corpse_count = corpse_count + 1
+    end
+  end
+
+  if corpse_count == 1 then
+    do_it("c")
+    return true
+  elseif corpse_count > 1 then
+    do_it("ccq")
+    return true
+  end
   return false
+end
+
+function pickup_meat()
+  local item_count = 0
+  local found_food = false
+  for item in at_feet() do
+    if item.class(true) == "food" then
+      found_food = true
+    end
+    item_count = item_count + 1
+  end
+
+  if not found_food then
+    return false
+  end
+
+  if item_count == 1 then
+    do_it(",")
+    return true
+  elseif item_count > 1 then
+    do_it(",,\r")
+    return true
+  end
+  return false
+end
+
+function find_nearby_corpse()
+  -- We just butcher everything indiscriminately because it's simple.
+  return try_it(control('f') .. "corpse&&!!skel" .. "\ra\r\r")
 end
 
 function do_eat_permafood()
-  local selected_food
   for item in inventory() do
     if item.class(true) == "food" and
        food.edible(item) and
@@ -249,11 +303,9 @@ function do_eat_permafood()
       say("NOTICE: Eating permafood: " .. item.name())
       items.swap_slots(item.slot, items.letter_to_index("e"), false)
       do_it("ee")
-      return true
+      return
     end
   end
-
-  return false
 end
 
 function eat_permafood()
@@ -265,7 +317,8 @@ function eat_permafood()
 end
 
 function explore()
-  return try_it("o")
+  -- The \r is needed because it makes sure ready() is called again???
+  return try_it("o\r")
 end
 
 function progress()
@@ -418,6 +471,10 @@ function say(x)
   crawl.take_note(x)
 end
 
+function control(c)
+  return string.char(string.byte(c) - string.byte('a') + 1)
+end
+
 function initialize_monster_array()
   if not monster_array_init then
     monster_array = {}
@@ -466,6 +523,10 @@ function inventory()
   return iter.invent_iterator:new(items.inventory())
 end
 
+function at_feet()
+  return iter.invent_iterator:new(you.floor_items())
+end
+
 function have_permafood()
   for item in inventory() do
     if item.class(true) == "food" and
@@ -475,6 +536,23 @@ function have_permafood()
     end
   end
   return false
+end
+
+function have_chunk()
+  for item in inventory() do
+    if item.class(true) == "food" and
+       food.edible(item) and
+       food.ischunk(item) then
+      return true
+    end
+  end
+  return false
+end
+
+function can_eat()
+  if you.hunger_name() ~= "completely stuffed" then
+    return true
+  end
 end
 
 function need_to_eat()
