@@ -168,6 +168,9 @@ function win()
     progress,
     fight}
 
+  -- Look before taking action.
+  update_monster_array()
+
   local n = 1
   local success = false
   while not success do
@@ -231,6 +234,15 @@ function fight()
 end
 
 function whack()
+  for x = -1, 1 do
+    for y = -1, 1 do
+      if monster_array[x][y] then
+         do_it(dtovi(x, y))
+         return true
+      end
+    end
+  end
+
   return false
 end
 
@@ -335,8 +347,6 @@ function update_monster_array()
 end
 
 function danger()
-  update_monster_array()
-
   local danger = false
 
   for x = -LOS,LOS do
@@ -348,6 +358,14 @@ function danger()
   end
 
   return danger
+end
+
+function dtovi(x, y)
+  local d2v = {[-1] = { [-1] = 'y', [0] = 'k', [1] = 'u'},
+               [0]  = { [-1] = 'h',            [1] = 'l'},
+               [1]  = { [-1] = 'n', [0] = 'j', [1] = 'n'}}
+
+  return d2v[y][x]
 end
 
 }
