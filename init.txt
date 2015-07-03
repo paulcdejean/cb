@@ -164,9 +164,11 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 function win()
   local win_strategy = {
     rest,
+    relax,
     explore,
     progress,
-    fight}
+    fight,
+    emergency}
 
   -- Look before taking action.
   update_monster_array()
@@ -177,8 +179,8 @@ function win()
     if not win_strategy[n] then
       -- We've reached the end of the strategy table.
       -- This means we've failed.
-      say("CB failed to implement any of the strategies in the main table.")
-      say("CB is out of ideas and is returning control to the user.")
+      say("ERROR: CB failed to implement any of the strategies in the main table.")
+      say("ERROR: CB is out of ideas and is returning control to the user.")
       return false
     end
     success = win_strategy[n]()
@@ -207,6 +209,61 @@ function rest()
   return false
 end
 
+function relax()
+  local relax_strategy = {
+    eat_chunk,
+    butcher_nearby_corpse,
+    eat_permafood}
+
+  -- Reasons not to relax.
+  if danger() then
+    return false
+  end
+
+  local n = 1
+  local success = false
+  while not success do
+    if not relax_strategy[n] then
+      return false
+    end
+    success = relax_strategy[n]()
+    n = n + 1
+  end
+  return success
+end
+
+function eat_chunk()
+  return false
+end
+
+function butcher_nearby_corpse()
+  return false
+end
+
+function do_eat_permafood()
+  local selected_food
+  for item in inventory() do
+    if item.class(true) == "food" and
+       food.edible(item) and
+       not food.ischunk(item) then
+      say("NOTICE: Eating permafood: " .. item.name())
+      items.swap_slots(item.slot, items.letter_to_index("e"), false)
+      do_it("ee")
+      return true
+    end
+  end
+
+  return false
+end
+
+function eat_permafood()
+  if have_permafood() and need_to_eat() then
+    do_eat_permafood()
+    return true
+  end
+  return false
+end
+
 function explore()
   return try_it("o")
 end
@@ -220,11 +277,16 @@ function fight()
     whack,
     wait}
 
+  -- Nothing to fight...
+  if not danger() then
+    return false
+  end
+
   local n = 1
   local success = false
   while not success do
     if not fight_strategy[n] then
-      say("Unable to fight for some reason :(")
+      say("ERROR: Unable to fight for some reason.")
       return false
     end
     success = fight_strategy[n]()
@@ -249,6 +311,27 @@ end
 function wait()
   do_it("s")
   return true
+end
+
+function emergency()
+  -- These three situations are hardcoded to block autoexplore.
+  -- "You need to eat something NOW!"
+  -- "Calm down first, please."
+  -- "No exploration algorithm can help you here."
+  -- Because of that we need to solve them in order to keep playing
+  -- the game in a sensible fashionl.
+
+  local emergency_strategy = {
+    emergency_starvation,
+    emergency_berserk,
+    emergency_labyrinth}
+
+  -- We're not going to actually implement this ever because it's
+  -- fucking stupid as hell. The resting segment will rest off
+  -- berserking. The relaxing segment will eat. As for labyrinths
+  -- I have no fucking clue how you got in a labyrinth lmao.
+  -- Still keeping this around as a reminder just in case.
+  return false
 end
 
 ---------------
@@ -288,9 +371,20 @@ function ready()
   end
 end
 
+-- choose_stat_gain is run on level ups that cause stat gain.
+function choose_stat_gain()
+  return "s"
+end
+
 ---------------
 -- SECTION D --
 ---------------
+
+--function autopickup(it, name)
+--  return true
+--end
+--clear_autopickup_funcs()
+--add_autopickup_func(autopickup)
 
 ---------------
 -- SECTION E --
@@ -303,7 +397,7 @@ function do_it(command)
   -- When we're ready again, the current_turn may be different.
   coroutine.yield()
   if(current_turn == old_turn) then
-    say("BUG: The action \"" .. command .. "\" failed unexpectedly.")
+    say("ERROR: The action \"" .. command .. "\" failed unexpectedly.")
   end
 end
 
@@ -363,9 +457,33 @@ end
 function dtovi(x, y)
   local d2v = {[-1] = { [-1] = 'y', [0] = 'k', [1] = 'u'},
                [0]  = { [-1] = 'h',            [1] = 'l'},
-               [1]  = { [-1] = 'n', [0] = 'j', [1] = 'n'}}
+               [1]  = { [-1] = 'b', [0] = 'j', [1] = 'n'}}
 
   return d2v[y][x]
+end
+
+function inventory()
+  return iter.invent_iterator:new(items.inventory())
+end
+
+function have_permafood()
+  for item in inventory() do
+    if item.class(true) == "food" and
+       food.edible(item) and
+       not food.ischunk(item) then
+      return true
+    end
+  end
+  return false
+end
+
+function need_to_eat()
+  if you.hunger_name() == "starving" or
+     you.hunger_name() == "near starving" or
+     you.hunger_name() == "near starving" then
+    return true
+  end
+  return false
 end
 
 }
