@@ -409,7 +409,11 @@ end
 -- SECTION D --
 ---------------
 
-function autopickup(it, name)
+function autopickup(item, name)
+  local c = item.class(true)
+  if c == "food" and food.edible(item) then
+    return true
+  end
   return false
 end
 clear_autopickup_funcs()
