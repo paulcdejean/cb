@@ -239,7 +239,7 @@ function do_eat_chunk()
 end
 
 function eat_chunk()
-  if have_chunk() and can_eat() then
+  if have_chunk() and can_eat_chunk()) then
     do_eat_chunk()
     return true
   end
@@ -434,11 +434,11 @@ end
 -- SECTION D --
 ---------------
 
---function autopickup(it, name)
---  return true
---end
---clear_autopickup_funcs()
---add_autopickup_func(autopickup)
+function autopickup(it, name)
+  return false
+end
+clear_autopickup_funcs()
+add_autopickup_func(autopickup)
 
 ---------------
 -- SECTION E --
@@ -550,7 +550,7 @@ function have_chunk()
   return false
 end
 
-function can_eat()
+function can_eat_chunk()
   if you.hunger_name() ~= "completely stuffed" then
     return true
   end
