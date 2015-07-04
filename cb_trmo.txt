@@ -298,6 +298,57 @@ function explore()
 end
 
 function progress()
+  -- All progress strategies have a "success" flag.
+  -- This is so that they're no longer attempted once completed.
+  local progress_strategy = {
+    find_temple,
+    travel_to_temple,
+    worship_vehumet}
+
+  -- Reasons not to progress.
+  if danger() then
+    return false
+  end
+
+  local n = 1
+  local success = false
+  while not success do
+    if not progress_strategy[n] then
+      return false
+    end
+    success = progress_strategy[n]()
+    n = n + 1
+  end
+  return success
+end
+
+find_temple_success = false
+function find_temple()
+  if find_temple_success then
+    return false
+  elseif temple_located() then
+    find_temple_success = true
+    -- We return false because we didn't actually take any action.
+    return false
+  elseif you.where() == "D:1" or
+         you.where() == "D:2" or
+         you.where() == "D:3" or
+         you.where() == "D:4" or
+         you.where() == "D:5" or
+         you.where() == "D:6" then
+    travel_down()
+    return true
+  end
+
+  say("ERROR: We're unable to find the temple for some reason!")
+  return false
+end
+
+function travel_to_temple()
+  return false
+end
+
+function worship_vehumet()
   return false
 end
 
@@ -550,6 +601,15 @@ function need_to_eat()
      you.hunger_name() == "near starving" then
     return true
   end
+  return false
+end
+
+function temple_located()
+  return false
+end
+
+function travel_down()
+  say("Traveling downwards")
   return false
 end
 
