@@ -609,8 +609,8 @@ function temple_located()
 end
 
 function travel_down()
-  say("Traveling downwards")
-  return false
+  do_it("G>")
+  return true
 end
 
 }
