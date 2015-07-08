@@ -619,15 +619,18 @@ function have_chunk()
 end
 
 function can_eat_chunk()
-  if you.hunger_name() ~= "completely stuffed" then
+  if you.hunger() < 4 then
+    return true
+  elseif you.hunger() < 7 and you.gourmand() then
     return true
   end
+
+  return false
 end
 
 function need_to_eat()
-  if you.hunger_name() == "starving" or
-     you.hunger_name() == "near starving" or
-     you.hunger_name() == "near starving" then
+  -- Triggers if you're "very hungry" or hungrier.
+  if you.hunger() < 3 then
     return true
   end
   return false
