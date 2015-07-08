@@ -297,6 +297,10 @@ function unshaft()
 end
 
 function explore()
+  if danger() then
+    return false
+  end
+
   -- The \r is needed because it makes sure ready() is called again???
   return try_it("o\r")
 end
@@ -526,7 +530,7 @@ end
 
 function say(x)
   crawl.mpr(x)
-  crawl.take_note(x)
+  --crawl.take_note(x)
 end
 
 function control(c)
@@ -556,8 +560,11 @@ function update_monster_array()
 end
 
 function danger()
-  local danger = false
+  if not options.autopick_on then
+    return true
+  end
 
+  local danger = false
   for x = -LOS,LOS do
     for y = -LOS,LOS do
       local m = monster_array[x][y]
