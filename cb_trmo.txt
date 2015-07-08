@@ -101,7 +101,6 @@ runrest_ignore_monster += orb of destruction:1
 bindkey = [Y] CMD_NO_CMD_DEFAULT
 bindkey = [N] CMD_NO_CMD_DEFAULT
 bindkey = [B] CMD_NO_CMD_DEFAULT
-bindkey = [.] CMD_NO_CMD_DEFAULT
 
 ####################################
 # Don't get interrupted!
@@ -156,6 +155,9 @@ df += wand of (cold|digging|disintegration|draining|fire|polymorph)
 # now the lua
 
 {
+
+-- Section Z, important globals.
+local LOS = 7
 
 ---------------
 -- SECTION B --
@@ -357,9 +359,37 @@ function fight()
     whack,
     wait}
 
+  say("Fighting!")
   -- Nothing to fight...
   if not danger() then
     return false
+  end
+
+  -- I don't know how to fight when low hp.
+  -- I don't know how to fight invisible monsters.
+
+  -- Look around.
+  local m
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      m = monster_array[x][y]
+      if m then
+        if m:has_known_ranged_attack() then
+          say("I don't know how to fight " .. m:name() .. ", because they have a ranged attack.")
+          return false
+        elseif m:threat() > 2 then
+          -- Harmless: 0
+          -- Easy: 1
+          -- Dangerous: 2
+          -- Extremely dangerous: 3
+          say("I don't know how to fight " .. m:name() .. ", because they're extremely dangerous.")
+          return false
+        elseif m:reach_range() > 1 then
+          say("I don't know how to fight " .. m:name() .. ", because they have a reaching attack.")
+          return false
+        end
+      end
+    end
   end
 
   local n = 1
@@ -399,7 +429,7 @@ function emergency()
   -- "Calm down first, please."
   -- "No exploration algorithm can help you here."
   -- Because of that we need to solve them in order to keep playing
-  -- the game in a sensible fashionl.
+  -- the game in a sensible fashion.
 
   local emergency_strategy = {
     emergency_starvation,
@@ -418,7 +448,7 @@ end
 -- SECTION C --
 ---------------
 
-local LOS = 7
+
 
 local current_turn
 
