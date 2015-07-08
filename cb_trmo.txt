@@ -83,13 +83,22 @@ message_colour ^= mute:Unknown command
 ---------------
 -- Section B --
 ---------------
-local LOS = 7
+-- Default radius of vision in crawl.
+local LOS = 7 -- Don't change.
 
--- This is where we expect ourselves to be. If this ever doesn't match up with where we are,
--- then that means we've either been shafted, banished, or there's an error on the code.
--- It's initialized here to D:1, which is where you should be starting the game.
-local expected_branch = "D"
-local expected_level = 1
+-- The maximum number of floors a shaft can drop you
+local max_shaft_depth = 3
+
+-- I wish there was a way to have this persist when saving and reloading a game.
+-- However there isn't any way to do that that I know of. This can lead to some
+-- potentially odd behavior, where making assumptions may be important. Variables
+-- that control these assumptions are below.
+local last_explored_level = 0 -- Don't change.
+
+-- When loading a saved game, we have no way of knowing for sure if we've been
+-- "shafted" or not. If set to true we assume we have been, and go up three levels
+-- before working our way down.
+local attempt_unshaft_on_start = false
 
 ---------------
 -- SECTION C --
@@ -258,7 +267,39 @@ function depart_abyss()
 end
 
 function unshaft()
-  return false
+  branch, level = whereami()
+
+  if danger() then
+    return false
+  end
+
+  if level == 1 then
+    return false
+  end
+
+  if last_explored_level == -1 and not attempt_unshaft_on_start then
+    -- We make the assumpion that the previous level was the last explored one.
+    -- This means we're not shafted of course.
+    last_explored_level = level - 1
+    return false
+  end
+
+  if last_explored_level == -1 and attempt_unshaft_on_start then
+    -- We make the assumption that we were 3 floors up before we were shafted.
+    last_explored_level = level - max_shaft_depth - 1
+
+    -- A value of 0 means that no levels have been explored, so we will travel to branch:1.
+    if last_explored_level < 0 then
+      last_explored_level = 0
+    end
+  end
+
+  if level - 1 > last_explored_level then
+     say("We need to unshaft ourselves!")
+     return true
+     -- The final \r is needed because it makes sure ready() is called again???
+     -- return try_it("G<\r")
+  end
 end
 
 function explore()
@@ -302,7 +343,8 @@ function find_temple()
     -- We return false because we didn't actually take any action.
     return false
   elseif branch == "D" and level < 7 then
-    do_it("G>")
+    -- The final \r is needed because it makes sure ready() is called again???
+    do_it("G>\r")
     return true
   end
 
