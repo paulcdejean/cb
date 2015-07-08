@@ -299,6 +299,10 @@ function explore()
   return try_it("o\r")
 end
 
+-- This is where we expect ourselves to be. If this ever doesn't match up with where we are,
+-- then that means we've either been shafted, banished, or there's an error on the code.
+local expected_location
+
 function progress()
   -- All progress strategies have a "success" flag.
   -- This is so that they're no longer attempted once completed.
@@ -326,19 +330,16 @@ end
 
 find_temple_success = false
 function find_temple()
+  branch, level = whereami()
+
   if find_temple_success then
     return false
   elseif temple_located() then
     find_temple_success = true
     -- We return false because we didn't actually take any action.
     return false
-  elseif you.where() == "D:1" or
-         you.where() == "D:2" or
-         you.where() == "D:3" or
-         you.where() == "D:4" or
-         you.where() == "D:5" or
-         you.where() == "D:6" then
-    travel_down()
+  elseif branch == "D" and level < 7 then
+    do_it("G>")
     return true
   end
 
@@ -359,7 +360,6 @@ function fight()
     whack,
     wait}
 
-  say("Fighting!")
   -- Nothing to fight...
   if not danger() then
     return false
@@ -447,8 +447,6 @@ end
 ---------------
 -- SECTION C --
 ---------------
-
-
 
 local current_turn
 
@@ -563,7 +561,8 @@ function danger()
 
   for x = -LOS,LOS do
     for y = -LOS,LOS do
-      if monster_array[x][y] then
+      local m = monster_array[x][y]
+      if m and not m:is_safe() then
         danger = true
       end
     end
@@ -638,9 +637,15 @@ function temple_located()
   return false
 end
 
-function travel_down()
-  do_it("G>")
-  return true
+function whereami()
+  local branch
+  local level
+  branch, level = you.where():match("([a-zA-Z]+):([0-9]+)")
+  level = tonumber(level)
+  if not level then
+    branch = you.where()
+    level = 1
+  end
+  return branch, level
 end
-
 }
