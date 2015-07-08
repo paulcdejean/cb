@@ -370,6 +370,11 @@ function fight()
   end
 
   -- I don't know how to fight invisible monsters.
+  if not options.autopick_on then
+    say("I don't know how to fight invisible monsters.")
+    return false
+  end
+
 
   -- Look around.
   local m
