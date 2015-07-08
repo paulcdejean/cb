@@ -93,7 +93,7 @@ local max_shaft_depth = 3
 -- However there isn't any way to do that that I know of. This can lead to some
 -- potentially odd behavior, where making assumptions may be important. Variables
 -- that control these assumptions are below.
-local last_explored_level = 0 -- Don't change.
+local last_explored_level = -1 -- Don't change.
 
 -- When loading a saved game, we have no way of knowing for sure if we've been
 -- "shafted" or not. If set to true we assume we have been, and go up three levels
@@ -273,10 +273,6 @@ function unshaft()
     return false
   end
 
-  if level == 1 then
-    return false
-  end
-
   if last_explored_level == -1 and not attempt_unshaft_on_start then
     -- We make the assumpion that the previous level was the last explored one.
     -- This means we're not shafted of course.
@@ -295,10 +291,8 @@ function unshaft()
   end
 
   if level - 1 > last_explored_level then
-     say("We need to unshaft ourselves!")
-     return true
      -- The final \r is needed because it makes sure ready() is called again???
-     -- return try_it("G<\r")
+     return try_it("G<\r")
   end
 end
 
@@ -344,6 +338,7 @@ function find_temple()
     return false
   elseif branch == "D" and level < 7 then
     -- The final \r is needed because it makes sure ready() is called again???
+    last_explored_level = level
     do_it("G>\r")
     return true
   end
@@ -513,7 +508,7 @@ function do_it(command)
   -- When we're ready again, the current_turn may be different.
   coroutine.yield()
   if(current_turn == old_turn) then
-    say("ERROR: The action \"" .. command .. "\" failed unexpectedly.")
+    say("ERROR: The action " .. string.format("%q", command) .. " failed unexpectedly.")
   end
 end
 
