@@ -211,8 +211,8 @@ end
 
 function find_nearby_corpse()
   -- We just butcher everything indiscriminately because it's simple.
-  -- The final \r is needed because it makes sure ready() is called again???
-  return try_it(control('f') .. "corpse&&!!skel&&" .. you.where() .. "\ra\r\r")
+  -- The final ESC is needed because it makes sure ready() is called again???
+  return try_it(control('f') .. "corpse&&!!skel&&" .. you.where() .. "\ra\r" .. string.char(27))
 end
 
 function do_eat_permafood()
@@ -291,8 +291,8 @@ function unshaft()
   end
 
   if level - 1 > last_explored_level then
-     -- The final \r is needed because it makes sure ready() is called again???
-     return try_it("G<\r")
+     -- The final ESC is needed because it makes sure ready() is called again???
+     return try_it("G<" .. string.char(27))
   end
 end
 
@@ -301,8 +301,9 @@ function explore()
     return false
   end
 
-  -- The \r is needed because it makes sure ready() is called again???
-  return try_it("o\r")
+  -- One ESC key is needed to exit out of shops.
+  -- The second ESC is needed because it makes sure ready() is called again???
+  return try_it("o" .. string.char(27) .. string.char(27))
 end
 
 function progress()
@@ -341,9 +342,9 @@ function find_temple()
     -- We return false because we didn't actually take any action.
     return false
   elseif branch == "D" and level < 7 then
-    -- The final \r is needed because it makes sure ready() is called again???
+    -- The final ESC is needed because it makes sure ready() is called again???
     last_explored_level = level
-    do_it("G>\r")
+    do_it("G>" .. string.char(27))
     return true
   end
 
