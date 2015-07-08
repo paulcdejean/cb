@@ -85,6 +85,12 @@ message_colour ^= mute:Unknown command
 ---------------
 local LOS = 7
 
+-- This is where we expect ourselves to be. If this ever doesn't match up with where we are,
+-- then that means we've either been shafted, banished, or there's an error on the code.
+-- It's initialized here to D:1, which is where you should be starting the game.
+local expected_branch = "D"
+local expected_level = 1
+
 ---------------
 -- SECTION C --
 ---------------
@@ -93,6 +99,7 @@ function win()
   local win_strategy = {
     rest,
     relax,
+    escape,
     explore,
     progress,
     fight,
@@ -196,7 +203,7 @@ end
 function find_nearby_corpse()
   -- We just butcher everything indiscriminately because it's simple.
   -- The final \r is needed because it makes sure ready() is called again???
-  return try_it(control('f') .. "corpse&&!!skel" .. "\ra\r\r")
+  return try_it(control('f') .. "corpse&&!!skel&&" .. you.where() .. "\ra\r\r")
 end
 
 function do_eat_permafood()
@@ -220,14 +227,44 @@ function eat_permafood()
   return false
 end
 
+-- Normally you want to explore the level completely before progressing. Escape is for
+-- situations where that's not a good idea, and it's better to prioritize hitting a staircase.
+-- Being shafted is the earliest example of such a situation. Later in the game escaping the
+-- abyss and the orb run are also situations where leisurely exploring is not advised.
+function escape()
+  local escape_strategy = {
+    ascend_with_orb,
+    depart_abyss,
+    unshaft}
+
+  local n = 1
+  local success = false
+  while not success do
+    if not escape_strategy[n] then
+      return false
+    end
+    success = escape_strategy[n]()
+    n = n + 1
+  end
+  return success
+end
+
+function ascend_with_orb()
+  return false
+end
+
+function depart_abyss()
+  return false
+end
+
+function unshaft()
+  return false
+end
+
 function explore()
   -- The \r is needed because it makes sure ready() is called again???
   return try_it("o\r")
 end
-
--- This is where we expect ourselves to be. If this ever doesn't match up with where we are,
--- then that means we've either been shafted, banished, or there's an error on the code.
-local expected_location
 
 function progress()
   -- All progress strategies have a "success" flag.
@@ -291,7 +328,6 @@ function fight()
     return false
   end
 
-  -- I don't know how to fight when low hp.
   -- I don't know how to fight invisible monsters.
 
   -- Look around.
