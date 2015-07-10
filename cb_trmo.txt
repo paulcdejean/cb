@@ -108,8 +108,6 @@ function win()
   local win_strategy = {
     rest,
     relax,
-    escape,
-    explore,
     progress,
     fight,
     emergency}
@@ -236,23 +234,32 @@ function eat_permafood()
   return false
 end
 
--- Normally you want to explore the level completely before progressing. Escape is for
--- situations where that's not a good idea, and it's better to prioritize hitting a staircase.
--- Being shafted is the earliest example of such a situation. Later in the game escaping the
--- abyss and the orb run are also situations where leisurely exploring is not advised.
-function escape()
-  local escape_strategy = {
+function progress()
+  -- All progress strategies have a "success" flag.
+  -- This is so that they're no longer attempted once completed.
+  local progress_strategy = {
     ascend_with_orb,
+    worship_god,
     depart_abyss,
-    unshaft}
+    unshaft,
+    -- It's important to take note of what we prioritize above exploration.
+    explore,
+    temple}
+
+  say(travel.find_deepest_explored("Temple"))
+
+  -- Reasons not to progress.
+  if danger() then
+    return false
+  end
 
   local n = 1
   local success = false
   while not success do
-    if not escape_strategy[n] then
+    if not progress_strategy[n] then
       return false
     end
-    success = escape_strategy[n]()
+    success = progress_strategy[n]()
     n = n + 1
   end
   return success
@@ -262,16 +269,16 @@ function ascend_with_orb()
   return false
 end
 
+function worship_god()
+  return false
+end
+
 function depart_abyss()
   return false
 end
 
 function unshaft()
   branch, level = whereami()
-
-  if danger() then
-    return false
-  end
 
   if last_explored_level == -1 and not attempt_unshaft_on_start then
     -- We make the assumpion that the previous level was the last explored one.
@@ -297,67 +304,18 @@ function unshaft()
 end
 
 function explore()
-  if danger() then
-    return false
-  end
-
   -- One ESC key is needed to exit out of shops.
   -- The second ESC is needed because it makes sure ready() is called again???
   return try_it("o" .. string.char(27) .. string.char(27))
 end
 
-function progress()
-  -- All progress strategies have a "success" flag.
-  -- This is so that they're no longer attempted once completed.
-  local progress_strategy = {
-    find_temple,
-    travel_to_temple,
-    worship_vehumet}
-
-  -- Reasons not to progress.
-  if danger() then
-    return false
-  end
-
-  local n = 1
-  local success = false
-  while not success do
-    if not progress_strategy[n] then
-      return false
-    end
-    success = progress_strategy[n]()
-    n = n + 1
-  end
-  return success
-end
-
-find_temple_success = false
-function find_temple()
-  branch, level = whereami()
-
-  if find_temple_success then
-    return false
-  elseif temple_located() then
-    find_temple_success = true
-    -- We return false because we didn't actually take any action.
-    return false
-  elseif branch == "D" and level < 7 then
+function temple()
+  if branch == "D" and level < 7 then
     -- The final ESC is needed because it makes sure ready() is called again???
     last_explored_level = level
     do_it("G>" .. string.char(27))
     return true
   end
-
-  say("ERROR: We're unable to find the temple for some reason!")
-  return false
-end
-
-function travel_to_temple()
-  return false
-end
-
-function worship_vehumet()
-  return false
 end
 
 function fight()
