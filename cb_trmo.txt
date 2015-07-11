@@ -427,7 +427,8 @@ end
 function whack()
   for x = -1, 1 do
     for y = -1, 1 do
-      if monster_array[x][y] then
+      local m = monster_array[x][y]
+      if m and not m:is_safe() then
          do_it(dtovi(x, y))
          return true
       end
