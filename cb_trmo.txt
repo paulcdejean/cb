@@ -88,7 +88,13 @@ message_colour ^= mute:Unknown command
 -- Section B --
 ---------------
 -- An important decision to make :)
-local chosen_god = "okawaru"
+-- This name needs to use the same capitalization as you.god() does.
+local chosen_god = "Okawaru"
+
+
+-- Another important decision.
+-- "s" "d" "i"
+local prefered_stat = "d"
 
 -- When loading a saved game, we have no way of knowing for sure if we've been
 -- "shafted" or not. If set to true we assume we have been, and go up three levels
@@ -109,7 +115,7 @@ local max_shaft_depth = 3
 
 local last_explored_level = -1
 
-
+crawl.enable_more(false)
 
 ---------------
 -- SECTION C --
@@ -221,7 +227,7 @@ end
 function find_nearby_corpse()
   -- We just butcher everything indiscriminately because it's simple.
   -- The final ESC is needed because it makes sure ready() is called again???
-  return try_it(control('f') .. "corpse&&!!skel&&" .. you.where() .. "\ra\r" .. string.char(27))
+  return try_it(control('f') .. "@corpse&&!!skel\ra\r" .. string.char(27))
 end
 
 function do_eat_permafood()
@@ -246,8 +252,6 @@ function eat_permafood()
 end
 
 function progress()
-  -- All progress strategies have a "success" flag.
-  -- This is so that they're no longer attempted once completed.
   local progress_strategy = {
     ascend_with_orb,
     worship_god,
@@ -256,8 +260,6 @@ function progress()
     -- It's important to take note of what we prioritize above exploration.
     explore,
     temple}
-
-  say(travel.find_deepest_explored("Temple"))
 
   -- Reasons not to progress.
   if danger() then
@@ -281,7 +283,19 @@ function ascend_with_orb()
 end
 
 function worship_god()
-  return false
+  if you.god() == chosen_god then
+    return false
+  end
+
+  say("My god is: " .. you.god())
+  say("My chosen god is: " .. chosen_god)
+
+  if view.feature_at(0, 0) == "altar_" .. chosen_god:lower() then
+    do_it("pYY")
+    return true
+  end
+
+  return try_it(control('f') .. "@altar&&" .. chosen_god:lower() .. "\ra\r" .. string.char(27))
 end
 
 function depart_abyss()
@@ -478,7 +492,7 @@ end
 
 -- choose_stat_gain is run on level ups that cause stat gain.
 function choose_stat_gain()
-  return "s"
+  return prefered_stat
 end
 
 ---------------
