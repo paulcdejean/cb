@@ -262,9 +262,9 @@ function progress()
     worship_god,
     depart_abyss,
     unshaft,
+    temple,
     -- It's important to take note of what we prioritize above exploration.
-    explore,
-    temple}
+    explore}
 
   -- Reasons not to progress.
   if danger() then
@@ -369,8 +369,11 @@ end
 
 function fight()
   local fight_strategy = {
+    hide,
     whack,
-    wait}
+    shoot,
+    wait,
+    charge}
 
   -- Nothing to fight...
   if not danger() then
@@ -390,10 +393,7 @@ function fight()
     for y = -LOS,LOS do
       m = monster_array[x][y]
       if m then
-        if m:has_known_ranged_attack() then
-          say("I don't know how to fight " .. m:name() .. ", because they have a ranged attack.")
-          return false
-        elseif m:threat() > 2 then
+        if m:threat() > 2 then
           -- Harmless: 0
           -- Easy: 1
           -- Dangerous: 2
@@ -421,6 +421,10 @@ function fight()
   return success
 end
 
+function hide()
+  return false
+end
+
 function whack()
   for x = -1, 1 do
     for y = -1, 1 do
@@ -434,9 +438,17 @@ function whack()
   return false
 end
 
+function shoot()
+  return false
+end
+
 function wait()
   do_it("s")
   return true
+end
+
+function charge()
+  return false
 end
 
 function emergency()
