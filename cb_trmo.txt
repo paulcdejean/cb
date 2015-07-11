@@ -674,6 +674,7 @@ function have_chunk()
   for item in inventory() do
     if item.class(true) == "food" and
        food.edible(item) and
+       not food.dangerous(item) and
        food.ischunk(item) then
       return true
     end
@@ -683,6 +684,7 @@ function have_chunk()
   for item in at_feet() do
     if item.class(true) == "food" and
        food.edible(item) and
+       not food.dangerous(item) and
        food.ischunk(item) then
       return true
     end
