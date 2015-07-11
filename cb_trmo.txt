@@ -726,7 +726,7 @@ function archer_inrange()
     for y = -LOS, LOS do
       m = monster_array[x][y]
       if m then
-        if m:has_known_ranged_attack() then
+        if m:has_known_ranged_attack() and not m:is_safe() then
           return m, x, y
         end
       end
@@ -740,7 +740,7 @@ function reacher_inrange()
     for y = -max_reach_range, max_reach_range do
       m = monster_array[x][y]
       if m then
-        if m:reach_range() > 1 then
+        if m:reach_range() > 1 and not m:is_safe() then
           return m, x, y
         end
       end
