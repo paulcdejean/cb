@@ -395,7 +395,7 @@ function fight()
     for y = -LOS, LOS do
       m = monster_array[x][y]
       if m then
-        if m:threat() > 2 then
+        if m:threat() > 2 and not m:is_safe() then
           -- Harmless: 0
           -- Easy: 1
           -- Dangerous: 2
@@ -752,8 +752,10 @@ function towards(input_x, input_y)
   local x, y
 
   if input_x < 0 then x = -1 end
+  if input_x == 0 then x = 0 end
   if input_x > 0 then x = 1 end
   if input_y < 0 then y = -1 end
+  if input_y == 0 then y = 0 end
   if input_y > 0 then y = 1 end
 
   if math.abs(input_x) > math.abs(input_y) then
@@ -773,7 +775,6 @@ function towards(input_x, input_y)
       end
     end
   end
-
   return x, y
 end
 
