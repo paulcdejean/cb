@@ -400,9 +400,6 @@ function fight()
           -- Extremely dangerous: 3
           say("I don't know how to fight " .. m:name() .. ", because they're extremely dangerous.")
           return false
-        elseif m:reach_range() > 1 then
-          say("I don't know how to fight " .. m:name() .. ", because they have a reaching attack.")
-          return false
         end
       end
     end
@@ -443,6 +440,21 @@ function shoot()
 end
 
 function wait()
+  -- We don't want to be waiting if they can hit us from range.
+  local m
+  for x = -LOS,LOS do
+    for y = -LOS,LOS do
+      m = monster_array[x][y]
+      if m then
+        if m:has_known_ranged_attack() then
+          return false
+        elseif m:reach_range() > 1 then
+          return false
+        end
+      end
+    end
+  end
+
   do_it("s")
   return true
 end
