@@ -262,9 +262,9 @@ function progress()
     worship_god,
     depart_abyss,
     unshaft,
-    temple,
     -- It's important to take note of what we prioritize above exploration.
-    explore}
+    explore,
+    temple}
 
   -- Reasons not to progress.
   if danger() then
