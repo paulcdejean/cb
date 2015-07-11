@@ -388,25 +388,6 @@ function fight()
     return false
   end
 
-
-  -- Look around.
-  local m
-  for x = -LOS, LOS do
-    for y = -LOS, LOS do
-      m = monster_array[x][y]
-      if m then
-        if m:threat() > 2 and not m:is_safe() then
-          -- Harmless: 0
-          -- Easy: 1
-          -- Dangerous: 2
-          -- Extremely dangerous: 3
-          say("I don't know how to fight " .. m:name() .. ", because they're extremely dangerous.")
-          return false
-        end
-      end
-    end
-  end
-
   local n = 1
   local success = false
   while not success do
