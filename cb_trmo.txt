@@ -515,6 +515,17 @@ function choose_stat_gain()
   return prefered_stat
 end
 
+--local hackyhack = true
+
+--function ch_mon_is_safe()
+--  return hackyhack
+--end
+
+--function ch_stop_running()
+--  hackyhack = false
+--  return false
+--end
+
 ---------------
 -- SECTION E --
 ---------------
