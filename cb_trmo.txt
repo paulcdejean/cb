@@ -234,7 +234,7 @@ end
 function find_nearby_corpse()
   -- We just butcher everything indiscriminately because it's simple.
   -- The final ESC is needed because it makes sure ready() is called again???
-  return try_it(control('f') .. "@corpse&&!!skel\ra\r" .. string.char(27))
+  return try_it(control('f') .. "@corpse&&!!skel&&!!rot\ra\r" .. string.char(27))
 end
 
 function do_eat_permafood()
@@ -385,6 +385,11 @@ function fight()
   -- I don't know how to fight invisible monsters.
   if not options.autopick_on then
     say("I don't know how to fight invisible monsters.")
+    return false
+  end
+
+  if threat_level() >= 10 then
+    say("It's too dangerous! Threat level: " .. threat_level())
     return false
   end
 
@@ -760,6 +765,29 @@ function towards(input_x, input_y)
     end
   end
   return x, y
+end
+
+function threat_level()
+  local total_threat = 0
+
+  local m
+  for x = -LOS, LOS do
+    for y = -LOS, LOS do
+      m = monster_array[x][y]
+      if m then
+        if m:is_safe() then
+          break
+        end
+
+        total_threat = total_threat + math.pow(2, m:threat())
+        if m:is_unique() then
+          total_threat = total_threat + 2
+        end
+      end
+    end
+  end
+
+  return total_threat
 end
 
 }
