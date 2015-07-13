@@ -117,6 +117,8 @@ local last_explored_level = -1
 
 local max_reach_range = 2
 
+local run_mode = false
+
 crawl.enable_more(false)
 
 ---------------
@@ -371,6 +373,8 @@ end
 
 function fight()
   local fight_strategy = {
+    stairdance_up,
+    retreat_to_upstairs,
     hide,
     whack,
     shoot,
@@ -388,11 +392,6 @@ function fight()
     return false
   end
 
-  if threat_level() >= 10 then
-    say("It's too dangerous! Threat level: " .. threat_level())
-    return false
-  end
-
   local n = 1
   local success = false
   while not success do
@@ -403,6 +402,35 @@ function fight()
     success = fight_strategy[n]()
     n = n + 1
   end
+  return success
+end
+
+function stairdance_up()
+  local floor = view.feature_at(0,0)
+
+  if not floor:find("stone_stairs_up") and
+  floor ~= "escape_hatch_up" then
+    return false
+  end
+
+  if threat_level() > 10 then
+    return try_it("<")
+  end
+
+  return false
+end
+
+function retreat_to_upstairs()
+  local current_threat = threat_level()
+
+  if current_threat < 10 then
+    return false
+  end
+
+  run_mode = true
+
+  local success = try_it("X<\r" .. string.char(27))
+  run_mode = false
   return success
 end
 
@@ -515,16 +543,17 @@ function choose_stat_gain()
   return prefered_stat
 end
 
---local hackyhack = true
+function ch_mon_is_safe()
+  if(run_mode == true) then
+    return true
+  end
 
---function ch_mon_is_safe()
---  return hackyhack
---end
+  return false
+end
 
---function ch_stop_running()
---  hackyhack = false
---  return false
---end
+function ch_stop_running()
+  run_mode = false
+end
 
 ---------------
 -- SECTION E --
