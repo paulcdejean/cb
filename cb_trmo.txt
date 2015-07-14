@@ -829,6 +829,7 @@ end
 
 function threat_level()
   local total_threat = 0
+  local monster_threat = 0
 
   local m
   for x = -LOS, LOS do
@@ -839,7 +840,11 @@ function threat_level()
           break
         end
 
-        total_threat = total_threat + m:threat() * 3
+        monster_threat = m:threat() * 3
+        if monster_threat == 0 then
+          monster_threat = 1
+        end
+        total_threat = total_threat + monster_threat
       end
     end
   end
