@@ -4,7 +4,4 @@ Stuck:
 - Glass
 
 Dying:
-- Bad target prioritization especially versus summoners.
--- ATTACKING DANGEROUS STUFF FIRST FFS
--- Don't switch targets
--- Kill the fucking summoner.
+
