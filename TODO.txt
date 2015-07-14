@@ -5,3 +5,4 @@ Stuck:
 
 Dying:
 - Running away towards monsters -.-
+- Don't run away from centuars in melee range.
