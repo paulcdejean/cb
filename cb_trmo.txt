@@ -169,7 +169,12 @@ function rest()
     return true
   end
 
-  if you.poisoned() then
+  if you.poisoned() or
+  you.berserk() or
+  you.confused() or
+  you.exhausted() or
+  you.slowed() or
+  you.corrosion() > 0 then
     do_rest()
     return true
   end
