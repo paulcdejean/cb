@@ -1,7 +1,7 @@
 Stuck:
 - Max inventory
-- Invisible shits
+- Invisible shits******************
 - Glass
 
 Dying:
-
+- Running away towards monsters -.-
