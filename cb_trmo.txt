@@ -407,17 +407,16 @@ end
 
 function stairdance_up()
   local floor = view.feature_at(0,0)
-
   if not floor:find("stone_stairs_up") and
   floor ~= "escape_hatch_up" then
     return false
   end
 
-  if threat_level() > 10 then
-    return try_it("<")
+  if threat_level() < 10 then
+    return false
   end
 
-  return false
+  return try_it("<")
 end
 
 function retreat_to_upstairs()
@@ -427,11 +426,9 @@ function retreat_to_upstairs()
     return false
   end
 
+  say("Retreating!")
   run_mode = true
-
-  local success = try_it("X<\r" .. string.char(27))
-  run_mode = false
-  return success
+  return try_it("X<\r" .. string.char(27))
 end
 
 function hide()
@@ -543,12 +540,12 @@ function choose_stat_gain()
   return prefered_stat
 end
 
-function ch_mon_is_safe()
+function ch_mon_is_safe(mon, default_is_safe, moving, dist)
   if(run_mode == true) then
     return true
   end
 
-  return false
+  return default_is_safe
 end
 
 function ch_stop_running()
@@ -819,10 +816,7 @@ function threat_level()
           break
         end
 
-        total_threat = total_threat + math.pow(2, m:threat())
-        if m:is_unique() then
-          total_threat = total_threat + 2
-        end
+        total_threat = total_threat + m:threat() * 3
       end
     end
   end
