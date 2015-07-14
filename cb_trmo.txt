@@ -426,7 +426,10 @@ function retreat_to_upstairs()
     return false
   end
 
-  say("Retreating!")
+  if you.slowed() then
+    return false
+  end
+
   run_mode = true
   return try_it("X<\r" .. string.char(27))
 end
@@ -436,17 +439,37 @@ function hide()
 end
 
 function whack()
+  local target_x = 0
+  local target_y = 0
+  local current_highest_threat = -1
+  local current_worst_injury = -1
   for x = -1, 1 do
     for y = -1, 1 do
       local m = monster_array[x][y]
       if m and not m:is_safe() then
-         do_it(dtovi(x, y))
-         return true
+        if (not m:is("summoned") and
+        m:threat() > current_highest_threat) or
+        -- -- -- -- --
+        (not m:is("summoned") and
+        m:threat() == current_highest_threat and
+        m:damage_level() > current_worst_injury) or
+        -- -- -- -- --
+        current_highest_threat < 0 then
+          target_x = x
+          target_y = y
+          current_highest_threat = m:threat()
+          current_worst_injury = m:damage_level()
+        end
       end
     end
   end
 
-  return false
+  if target_x == 0 and target_y == 0 then
+    return false
+  end
+
+  do_it(dtovi(target_x, target_y))
+  return true
 end
 
 function shoot()
@@ -572,13 +595,13 @@ function autopickup(item, name)
   elseif c == "scroll" then
     return true
   elseif c == "armour" then
-    return true
+    return false
   elseif c == "jewellery" then
     return true
   elseif c == "wand" then
     return true
   elseif c == "missile" then
-    return true
+    return false
   end
 
   return false
