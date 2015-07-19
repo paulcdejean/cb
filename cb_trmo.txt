@@ -81,6 +81,9 @@ explore_stop = portals,stairs,altars,greedy_pickup_smart
 
 message_colour ^= mute:Unknown command
 
+bindkey = [Y] CMD_NO_CMD_DEFAULT
+bindkey = [N] CMD_NO_CMD_DEFAULT
+
 # Lua begins here.
 
 {
@@ -426,8 +429,21 @@ function retreat_to_upstairs()
     return false
   end
 
+  for x = -LOS, LOS do
+    for y = -LOS, LOS do
+      local m = monster_array[x][y]
+      if m or view.invisible_monster(x, y) then
+        local r = math.max(math.abs(x), math.abs(y)) - 1
+        travel.set_exclude(x, y, r)
+      end
+    end
+  end
+
+
   run_mode = true
   local result = try_it("X<\r" .. string.char(27))
+  -- Clear the exclusions once we're done.
+  try_it("X" .. control('e') .. string.char(27).. string.char(27))
   run_mode = false
   return result
 end
