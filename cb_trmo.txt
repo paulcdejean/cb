@@ -499,7 +499,7 @@ function whack()
         end
       elseif view.invisible_monster(x, y) then
         -- We'll consider invisible monsters top priority for now.
-        local_highest_threat = 4
+        current_highest_threat = 4
         target_x = x
         target_y = y
       end
