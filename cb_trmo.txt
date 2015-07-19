@@ -507,6 +507,12 @@ function charge()
     return true
   end
 
+  m, x, y = shimmer_inrange()
+  if m then
+    do_it(dtovi(towards(x, y)))
+    return true
+  end
+
   return false
 end
 
@@ -800,6 +806,19 @@ function reacher_inrange()
     end
   end
 end
+
+function shimmer_inrange()
+  for x = -LOS, LOS do
+    for y = -LOS, LOS do
+      if view.invisible_monster(x, y) then
+        return true, x, y
+      end
+    end
+  end
+
+  return false
+end
+
 
 function towards(input_x, input_y)
   local x, y
