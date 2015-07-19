@@ -692,6 +692,10 @@ function danger()
     end
   end
 
+  if (shimmer_inrange()) then
+    return true
+  end
+
   return danger
 end
 
