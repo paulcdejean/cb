@@ -301,9 +301,6 @@ function worship_god()
     return false
   end
 
-  say("My god is: " .. you.god())
-  say("My chosen god is: " .. chosen_god)
-
   if view.feature_at(0, 0) == "altar_" .. chosen_god:lower() then
     do_it("pYY")
     return true
@@ -391,12 +388,6 @@ function fight()
     return false
   end
 
-  -- I don't know how to fight invisible monsters.
-  if not options.autopick_on then
-    say("I don't know how to fight invisible monsters.")
-    return false
-  end
-
   local n = 1
   local success = false
   while not success do
@@ -454,19 +445,27 @@ function whack()
     for y = -1, 1 do
       local m = monster_array[x][y]
       if m and not m:is_safe() then
-        if (not m:is("summoned") and
-        m:threat() > current_highest_threat) or
+        if (m:threat() > current_highest_threat) or
         -- -- -- -- --
-        (not m:is("summoned") and
-        m:threat() == current_highest_threat and
+        (m:threat() == current_highest_threat and
         m:damage_level() > current_worst_injury) or
         -- -- -- -- --
         current_highest_threat < 0 then
           target_x = x
           target_y = y
-          current_highest_threat = m:threat()
+          if m:is("summoned") then
+            current_highest_threat = -1
+          else
+            current_highest_threat = m:threat()
+          end
+
           current_worst_injury = m:damage_level()
         end
+      elseif view.invisible_monster(x, y) then
+        -- We'll consider invisible monsters top priority for now.
+        local_highest_threat = 4
+        target_x = x
+        target_y = y
       end
     end
   end
@@ -485,7 +484,9 @@ end
 
 function wait()
   -- We don't want to be waiting if something can hit us from range.
-  if not (archer_inrange()) and not (reacher_inrange()) then
+  if not (archer_inrange())
+  and not (reacher_inrange())
+  and options.autopick_on then
     do_it("s")
     return true
   end
