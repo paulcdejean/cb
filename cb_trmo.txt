@@ -187,6 +187,7 @@ end
 
 function relax()
   local relax_strategy = {
+    shuffle_skills,
     eat_chunk,
     butcher_corpse,
     find_nearby_corpse,
@@ -207,6 +208,20 @@ function relax()
     n = n + 1
   end
   return success
+end
+
+function shuffle_skills()
+  you.train_skill("Stealth", 0)
+
+  you.train_skill("Unarmed Combat", 1)
+  you.train_skill("Fighting", 1)
+  you.train_skill("Dodging", 1)
+
+  if you.god() ~= chosen_god and you.base_skill("Invocations") < 7 then
+    you.train_skill("Invocations", 1)
+  else
+    you.train_skill("Invocations", 0)
+  end
 end
 
 function do_eat_chunk()
