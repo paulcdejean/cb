@@ -429,6 +429,11 @@ function retreat_to_upstairs()
     return false
   end
 
+  local branch, level = whereami()
+  if branch == "D" and level == "1" then
+    return false
+  end
+
   for x = -LOS, LOS do
     for y = -LOS, LOS do
       local m = monster_array[x][y]
