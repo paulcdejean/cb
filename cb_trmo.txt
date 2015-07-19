@@ -80,6 +80,7 @@ fire_order = stone
 explore_stop = portals,stairs,altars,greedy_pickup_smart
 
 message_colour ^= mute:Unknown command
+message_colour ^= mute:Sorry, you're not good enough to have a special ability.
 
 bindkey = [Y] CMD_NO_CMD_DEFAULT
 bindkey = [N] CMD_NO_CMD_DEFAULT
@@ -108,6 +109,9 @@ local attempt_unshaft_on_start = false
 -- Since exploring the temple if you have selected a god is a waste of time, this
 -- should be set to true unless you are trying to test something.
 local temple_explored = false
+
+-- A number between 0 and 1 that signifies a dangerous percentage of hp.
+local low_hp_percent = 0.5
 
 ---------------
 -- Section C --
@@ -165,8 +169,8 @@ function rest()
   end
 
   -- Reasons to rest.
-  local hp,mhp = you.hp()
-  local mp,mmp = you.mp()
+  local hp, mhp = you.hp()
+  local mp, mmp = you.mp()
   if hp < mhp or mp < mmp then
     do_rest()
     return true
@@ -924,6 +928,11 @@ function threat_level()
         total_threat = total_threat + monster_threat
       end
     end
+  end
+
+  hp, mhp = you.hp()
+  if hp/mhp < low_hp_percent then
+    total_threat = total_threat * 2
   end
 
   return total_threat
