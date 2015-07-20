@@ -548,19 +548,19 @@ end
 
 function charge()
   local m, x, y = reacher_inrange()
-  if m then
+  if m and view.can_reach(x, y) then
     do_it(dtovi(towards(x, y)))
     return true
   end
 
   m, x, y = archer_inrange()
-  if m then
+  if m and view.can_reach(x, y) then
     do_it(dtovi(towards(x, y)))
     return true
   end
 
   m, x, y = shimmer_inrange()
-  if m then
+  if m and view.can_reach(x, y) then
     do_it(dtovi(towards(x, y)))
     return true
   end
