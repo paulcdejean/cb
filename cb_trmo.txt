@@ -447,7 +447,7 @@ end
 function retreat_to_upstairs()
   local current_threat = threat_level()
 
-  if current_threat < 5 then
+  if current_threat < 10 then
     return false
   end
 
