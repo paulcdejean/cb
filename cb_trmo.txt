@@ -631,16 +631,15 @@ end
 
 local vault_safe = {["moth of wrath"] = true}
 
-function ch_mon_is_safe(mon, default_is_safe, moving, dist)
+function ch_mon_is_safe(m, default_is_safe, moving, dist)
   if(run_mode == true) then
     return true
   end
 
   -- Melee monsters that can't reach us aren't a threat.
-  local x = mon:get_x()
-  local y = mon:get_y()
-
-  -- TODO, detect if the monster can reach us.
+  if not m:has_known_ranged_attack() and not monster_can_charge(m) then
+    return true
+  end
 
   return default_is_safe
 end
@@ -942,6 +941,49 @@ function threat_level()
   end
 
   return total_threat
+end
+
+-- A monster can charge you if it can move closer to you.
+function monster_can_charge(m)
+  local x, y = m:pos()
+
+  -- There's always three squares that move them "closer."
+  local ax, ay, bx, by, cx, cy
+
+  if math.abs(x) == math.abs(y) then
+    ax = x - (x / math.abs(x))
+    ay = y - (y / math.abs(y))
+    bx = x - (x / math.abs(x))
+    by = y
+    cx = x
+    cy = y - (y / math.abs(y))
+  elseif math.abs(x) > math.abs(y) then
+    ax = x - (x / math.abs(x))
+    ay = y
+    bx = x - (x / math.abs(x))
+    by = y + 1
+    cx = x - (x / math.abs(x))
+    cy = y - 1
+  else
+    ax = x
+    ay = y - (y / math.abs(y))
+    bx = x + 1
+    by = y - (y / math.abs(y))
+    cx = x - 1
+    cy = y - (y / math.abs(y))
+  end
+
+  local feature_a = view.feature_at(ax, ay)
+  local feature_b = view.feature_at(bx, by)
+  local feature_c = view.feature_at(cx, cy)
+
+  if travel.feature_solid(feature_a)
+  and travel.feature_solid(feature_b)
+  and travel.feature_solid(feature_c) then
+    return false
+  end
+
+  return true
 end
 
 }
