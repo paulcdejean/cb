@@ -434,7 +434,13 @@ function stairdance_up()
     return false
   end
 
-  return try_it("<")
+  local result = try_it("<")
+  if result then
+    -- This is to stop us from going back down the dangerous stairs.
+    travel.set_exclude(0, 0, 0)
+  end
+
+  return result
 end
 
 function retreat_to_upstairs()
@@ -449,14 +455,15 @@ function retreat_to_upstairs()
   end
 
   local branch, level = whereami()
-  if branch == "D" and level == "1" then
+  if branch == "D" and level == 1 then
     return false
   end
 
   for x = -LOS, LOS do
     for y = -LOS, LOS do
       local m = monster_array[x][y]
-      if m or view.invisible_monster(x, y) then
+      if (m and not m:is_safe())
+      or view.invisible_monster(x, y) then
         local r = math.max(math.abs(x), math.abs(y)) - 1
         travel.set_exclude(x, y, r)
       end
@@ -469,6 +476,11 @@ function retreat_to_upstairs()
   -- Clear the exclusions once we're done.
   try_it("X" .. control('e') .. string.char(27).. string.char(27))
   run_mode = false
+  if not result then
+    say("WARNING: We tried to run but couldn't!")
+    return true
+  end
+
   return result
 end
 
@@ -624,17 +636,11 @@ function ch_mon_is_safe(mon, default_is_safe, moving, dist)
     return true
   end
 
-  -- Melee monsters we can't reach aren't a threat.
+  -- Melee monsters that can't reach us aren't a threat.
   local x = mon:get_x()
   local y = mon:get_y()
 
-  if (not mon:has_known_ranged_attack() or vault_safe[mon:name()])
-  and not view.can_reach(x, y) then
-    return true
-  else
-    say(m:name())
-    return false
-  end
+  -- TODO, detect if the monster can reach us.
 
   return default_is_safe
 end
